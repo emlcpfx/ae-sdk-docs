@@ -83,6 +83,8 @@ nav:
     - architecture/hooks.md
     - architecture/advanced-suites.md
     - architecture/panels.md
+    - architecture/ml-inference-worker-subprocess.md
+    - architecture/model-encryption.md
   - Parameters:
     - parameters/index.md
     - parameters/fixed-point.md
@@ -161,7 +163,10 @@ nav:
   - Platform & Build:
     - platform/index.md
     - platform/pipl-macos-rez.md
+    - platform/ofx-plugin-structure.md
     - platform/ofx-rendering-model.md
+    - platform/ofx-resolve-pitfalls.md
+    - platform/ofx-build.md
     - platform/premiere-compatibility.md
     - platform/premiere-pixel-formats.md
     - platform/premiere-importers.md
