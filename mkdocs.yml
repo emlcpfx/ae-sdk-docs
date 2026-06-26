@@ -185,11 +185,15 @@ nav:
     - licensing/index.md
   - Advanced Topics:
     - advanced/index.md
+    - advanced/ecw-async-frame-and-live-preview.md
   - Curated Guides:
     - guides/index.md
     - guides/custom-ui-drawing.md
     - guides/overlay-ui.md
     - guides/custom-param-ui.md
+    - guides/ecw-widget-gallery.md
+    - guides/ecw-curve-editor.md
+    - guides/ecw-gradient-editor.md
     - guides/utility-headers.md
     - guides/pipltool.md
   - Q&A Reference:
