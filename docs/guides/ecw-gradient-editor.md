@@ -1,5 +1,7 @@
 # ECW Multi-Stop Gradient Editor
 
+> **Full working source:** [`ECW_Gradient`](https://github.com/emlcpfx/AE_ECW_Examples/tree/main/ECW_Gradient) in the [AE_ECW_Examples](https://github.com/emlcpfx/AE_ECW_Examples) repo — a complete, compilable plugin with the full ARB stop-list (flatten/copy/interp/compare), handle hit-testing, and the gradient-map render. Read it for the parts the snippets below abridge.
+
 This guide builds a multi-stop **color gradient editor** in the Effect Controls Window, like the gradient widgets in EmberGen, Houdini, or AE's own Gradient Map: a per-pixel gradient bar, triangle handles per stop, drag-to-move clamped between neighbours, double-click to open the host color picker, click-the-bar-to-add (sampling the ramp so it does not jump), Alt-click or drag-out to delete, all persisted as a variable-length stop list in arb data with undo/redo, and applied at render time as an MFR-safe gradient-map across 8/16/32-bit.
 
 It assumes [Custom Parameter UI](custom-param-ui.md) (arb-data callbacks) and [Custom UI: Drawing in the ECW](custom-ui-drawing.md) (events + Drawbot). It shares its structure with the [Curve Editor](ecw-curve-editor.md) — read that first if you want the simpler arb-handle-drag pattern; this page adds color, the host color picker, and the gradient-map render. Drawbot helpers come from the [Widget Gallery](ecw-widget-gallery.md).
