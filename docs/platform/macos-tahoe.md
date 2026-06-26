@@ -1,0 +1,11 @@
+# Macos Tahoe
+
+> 1 Q&A · source: AE plugin dev community Discord
+
+### Plugins are not loading via MediaCore folder on macOS Tahoe / AE 2026. What's happening?
+
+Multiple reports have been received about plugins failing to load from the MediaCore folder on macOS Tahoe (or with the AE 2026 upgrade). Plugins only work when placed in the Plug-ins folder. This appears to be a newly emerging issue with the OS/AE update.
+
+*Tags: `ae-2026`, `macos-tahoe`, `mediacore`, `plugin-loading`, `regression`*
+
+---

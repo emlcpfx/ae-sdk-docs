@@ -1,0 +1,19 @@
+# Resources
+
+> 2 Q&As · source: AE plugin dev community Discord
+
+### What are the AE SDK documentation URLs?
+
+The old URL ae-plugin-sdk.aenhancers.com is defunct. The correct current URL for AE plugin SDK documentation is https://ae-plugins.docsforadobe.dev/
+
+*Tags: `documentation`, `resources`, `sdk`*
+
+---
+
+### Where should After Effects SDK developers share code snippets and get help?
+
+Stack Overflow with 'After Effects SDK' tags is recommended as a good system for searching and hosting code. The AE SDK is very niche so resources are scarce, but building up a Stack Overflow presence helps the community. The adobe-plugin-devs Discord server also serves as a community resource, though Discord's chat format has limitations for code sharing compared to a forum system.
+
+*Tags: `code-sharing`, `community`, `resources`, `stack-overflow`*
+
+---

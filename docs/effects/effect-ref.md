@@ -1,0 +1,37 @@
+# Effect Ref
+
+> 2 Q&As · source: AE plugin dev community Discord
+
+### Why does transform_world give bad results when dragging a slider, and what is the correct first argument?
+
+The SDK documentation is wrong about putting in_data as the first argument to transform_world. The first argument is actually the effect_ref (in_data->effect_ref), but passing NULL instead works better. When using effect_ref, transform_world appears to check for interrupts, which causes it to halt the transformation during slider dragging for smoother interactive experience, but this results in incorrect output. Passing NULL avoids this interrupt check. Many suite callbacks accept NULL instead of effect_ref.
+
+*Tags: `documentation-bug`, `effect-ref`, `interrupt`, `rendering`, `transform-world`*
+
+---
+
+### How do you properly implement inter-effect communication using AEGP_EffectCallGeneric in After Effects plugins?
+
+When calling an effect from an AEGP (like Sweetie calling Checkout), you must handle timing carefully. The key issue is that you cannot call an effect back immediately while it's still processing its original call to your AEGP. Instead, use idle_hook: when the effect calls your AEGP, set a flag and wait for the next idle_hook call, then initiate AEGP_EffectCallGeneric when the effect is guaranteed to be idle. Alternatively, respond immediately via the same custom suite that did the calling, passing data for the calling effect to process without needing effectCallGeneric. Do not use AEGP_GetNewEffectForEffect with a passed effect_ref—instead, use AEGP_GetLayerEffectByIndex to look up the effect on the target layer. For permanent effect tracking across the project lifetime, store the comp itemID and layer layerID rather than relying on EffectRefH which can become invalid.
+
+```cpp
+// From AEGP: wait for idle hook before calling effect back
+if (AEFX_AcquireSuite(in_data, out_data, kDuckSuite1, kDuckSuiteVersion1, "Couldn't load suite.", (void**)&dsP)) {
+  PF_STRCPY(out_data->return_msg, "No Duck Suite!");
+} else {
+  if (dsP) {
+    dsP->Quack(2);
+  }
+  AEFX_ReleaseSuite(in_data, out_data, kDuckSuite1, kDuckSuiteVersion1, "Couldn't release suite.");
+}
+
+// From Effect: pass in_data to AEGP via custom suite for callback
+static SPAPI A_Err CalledFromEffect(void* ptr) {
+  PF_InData* pIndata = static_cast<PF_InData*>(ptr);
+  // Use AEGP_GetLayerEffectByIndex instead of AEGP_GetNewEffectForEffect
+}
+```
+
+*Tags: `aegp`, `effect-ref`, `idle-hook`, `inter-plugin`, `reference`, `timing`*
+
+---

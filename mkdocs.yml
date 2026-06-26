@@ -1,0 +1,194 @@
+site_name: AE Plugin SDK Community Docs
+site_description: Community-maintained documentation for After Effects C++ plugin development
+site_url: https://emlcpfx.github.io/ae-sdk-docs/
+repo_url: https://github.com/emlcpfx/ae-sdk-docs
+repo_name: ae-sdk-docs
+edit_uri: edit/master/docs/
+
+theme:
+  name: material
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: deep purple
+      accent: amber
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: deep purple
+      accent: amber
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  features:
+    - navigation.tracking
+    - navigation.sections
+    - navigation.top
+    - navigation.indexes
+    - search.suggest
+    - search.highlight
+    - search.share
+    - content.action.edit
+    - content.code.copy
+    - content.code.annotate
+    - toc.follow
+  icon:
+    repo: fontawesome/brands/github
+    edit: material/pencil
+
+plugins:
+  - search:
+      separator: '[\s\-\._]+'
+  - tags
+
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - tables
+  - toc:
+      permalink: true
+  - attr_list
+  - md_in_html
+  - pymdownx.snippets
+
+extra:
+  homepage: /ae-sdk-docs/
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/emlcpfx/ae-sdk-docs
+    - icon: fontawesome/brands/discord
+      link: https://discord.gg/your-invite-here
+
+nav:
+  - Home: index.md
+  - Getting Started:
+    - getting-started/intro.md
+    - getting-started/part2-intermediate.md
+    - getting-started/index.md
+  - Plugin Architecture:
+    - architecture/index.md
+    - architecture/sweet-pea.md
+    - architecture/hooks.md
+    - architecture/advanced-suites.md
+    - architecture/panels.md
+  - Parameters:
+    - parameters/index.md
+    - parameters/fixed-point.md
+    - parameters/param-flags.md
+    - parameters/paramarama.md
+    - parameters/instance-data-persistence.md
+  - Rendering:
+    - rendering/index.md
+    - rendering/pixel-data-suite.md
+    - rendering/world-suite.md
+    - rendering/color-conversion.md
+    - rendering/iterate-variants.md
+    - rendering/convolution.md
+    - rendering/depth-conversion.md
+    - rendering/sampling.md
+    - rendering/mask-world.md
+    - rendering/field-interlace.md
+    - rendering/triangle-rasterization-compute.md
+    - rendering/plugin-driven-motion-blur.md
+    - rendering/mask-handling-smartfx.md
+    - rendering/scatter-render.md
+    - rendering/progressive-render.md
+  - Effects & Processing:
+    - effects/index.md
+    - effects/new-world-flags.md
+    - effects/error-codes.md
+    - effects/handle-macros.md
+    - effects/channel-selectors.md
+    - effects/ansi-callbacks.md
+    - effects/version-encoding.md
+    - effects/gamma-table.md
+    - effects/ae-lights.md
+  - Memory & Threading:
+    - memory-threading/index.md
+  - AEGP & Scripting:
+    - aegp/index.md
+    - aegp/aeio-plugins.md
+    - aegp/aeio-frame-caching.md
+    - aegp/command-hooking.md
+    - aegp/render-queue.md
+    - aegp/text-manipulation.md
+    - aegp/persistent-data.md
+    - aegp/suite-versioning.md
+    - aegp/stream-walking.md
+    - aegp/choice-popup-params.md
+  - Suites & Callbacks:
+    - suites/index.md
+    - suites/suite-acquisition.md
+  - GPU Rendering:
+    - gpu/index.md
+    - gpu/cuda-kernels.md
+    - gpu/metal-compute.md
+    - gpu/gpu-memory.md
+    - gpu/opencl-setup.md
+    - gpu/wireframe-and-phong-compute.md
+    - gpu/ae-native-gpu-dispatch.md
+    - gpu/gpu-render-model.md
+    - gpu/gpu-cpu-parity.md
+    - gpu/pixel-layout-rgba.md
+    - gpu/metal-device-library.md
+  - Coordinates & Transforms:
+    - coordinates/index.md
+    - coordinates/transform-pipeline.md
+    - coordinates/ae-camera-matrix-conventions.md
+    - coordinates/ae-camera-pipeline.md
+  - Layers & Compositions:
+    - layers/index.md
+    - layers/layer-checkout-patterns.md
+    - layers/comp-traversal.md
+    - layers/nested-comps.md
+    - layers/mesh-layer-info.md
+  - Animation & Time:
+    - animation/index.md
+    - animation/keyframe-manipulation.md
+    - animation/expressions.md
+  - Platform & Build:
+    - platform/index.md
+    - platform/pipl-macos-rez.md
+    - platform/ofx-rendering-model.md
+    - platform/premiere-compatibility.md
+    - platform/premiere-pixel-formats.md
+    - platform/premiere-importers.md
+    - platform/premiere-exporters.md
+    - platform/premiere-ppix.md
+    - platform/premiere-transitions.md
+    - platform/premiere-gpu-filters.md
+    - platform/premiere-video-segments.md
+    - platform/premiere-smart-rendering.md
+    - platform/premiere-playback.md
+    - platform/premiere-control-surface.md
+    - platform/premiere-captions.md
+    - platform/premiere-suites-reference.md
+    - platform/premiere-device-control.md
+  - Licensing & Distribution:
+    - licensing/index.md
+  - Advanced Topics:
+    - advanced/index.md
+  - Curated Guides:
+    - guides/index.md
+    - guides/custom-ui-drawing.md
+    - guides/overlay-ui.md
+    - guides/custom-param-ui.md
+    - guides/utility-headers.md
+    - guides/pipltool.md
+  - Q&A Reference:
+    - qa/index.md
+  - Contributors:
+    - contributors/index.md
+  - Contributing: contributing.md
