@@ -1,5 +1,7 @@
 # ECW Widget Gallery: Reusable Drawbot Controls
 
+> **Full working source:** [`ECW_Gallery`](https://github.com/emlcpfx/AE_ECW_Examples/tree/main/ECW_Gallery) in the [AE_ECW_Examples](https://github.com/emlcpfx/AE_ECW_Examples) repo — a complete, compilable plugin. Read it for the full event wiring, PiPL, and Drawbot helpers; the snippets below are the teachable core.
+
 This guide is a cookbook of concrete, cherry-pickable custom-UI **widgets** for the Effect Controls Window (ECW), all drawn with Drawbot: an XY pad, a rotary knob/dial, a click-to-toggle button, a primitives-and-text reference card, and a `NewImageFromBuffer` image blit. The material here builds directly on the general mechanics in [Custom UI: Drawing in the Effect Controls Window](custom-ui-drawing.md) and [Custom Parameter UI](custom-param-ui.md) — read those first for the `register_ui` / event-dispatch / Drawbot-suite fundamentals. This page does **not** repeat them; it shows how to assemble those primitives into finished, interactive controls, and the patterns that make a *gallery* of independent widgets coexist in one effect.
 
 The widgets below come from a small open sample effect that puts every control on its own canvas in one Effect Controls panel, so each one can be lifted out in isolation.

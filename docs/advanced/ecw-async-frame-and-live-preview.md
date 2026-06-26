@@ -1,5 +1,7 @@
 # Live ECW Data: Async Upstream Frames and Live Previews
 
+> **Full working source:** [`ECW_Histo`](https://github.com/emlcpfx/AE_ECW_Examples/tree/main/ECW_Histo) in the [AE_ECW_Examples](https://github.com/emlcpfx/AE_ECW_Examples) repo — a complete, compilable plugin (live histogram + Levels + a second live-preview canvas). See `ECW_Histo_UI.cpp` for the full async-frame request and the transient-sequence-data cache.
+
 This is the modern (AE 13.5+) pattern for a **data-driven** custom UI in the Effect Controls Window: a control that displays something computed from the actual rendered frame — a live histogram, a vectorscope, a waveform, a thumbnail. The trick is requesting the upstream frame **asynchronously from inside `PF_Event_DRAW`** via the render async manager, computing your visualization on the UI thread, and caching the result so the panel never flickers while async renders are in flight.
 
 This is the highest-value technique on this site for interactive scopes, because the obvious approaches (rendering synchronously in DRAW, or stashing render-thread results for the UI to read) are both broken since the AE 13.5 UI/render thread split. This page is the missing recipe.

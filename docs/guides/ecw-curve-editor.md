@@ -1,5 +1,7 @@
 # ECW Curve / Response Editor
 
+> **Full working source:** the curve editor lives in [`ECW_Gallery`](https://github.com/emlcpfx/AE_ECW_Examples/tree/main/ECW_Gallery) (`ECW_Gallery_UI.cpp` + `ECW_Gallery_Arb.cpp`) in the [AE_ECW_Examples](https://github.com/emlcpfx/AE_ECW_Examples) repo — a complete, compilable plugin including the ARB handlers and the shared `SampleCurve` LUT.
+
 This guide builds a draggable, ARB-backed **curve editor** in the Effect Controls Window: control points stored in arbitrary data, hit-testing and dragging handles, adding points by clicking, deleting with Alt-click, pinned endpoints, smooth cubic-Hermite interpolation, and baking the curve to a 256-entry LUT that the render shares with the editor so the preview and the output never disagree.
 
 It assumes you have read [Custom Parameter UI](custom-param-ui.md) (the full arb-data callback system) and [Custom UI: Drawing in the ECW](custom-ui-drawing.md) (event dispatch and Drawbot). This page focuses on the parts those don't cover: the *editor* logic and the *shared evaluation function*. The reusable Drawbot helpers (`dbLine`, `dbCircle`, `CanvasOrigin`, `PaintBG`) come from the [Widget Gallery](ecw-widget-gallery.md).
