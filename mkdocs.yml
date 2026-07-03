@@ -191,6 +191,7 @@ nav:
     - guides/index.md
     - guides/custom-ui-drawing.md
     - guides/overlay-ui.md
+    - guides/modal-dialog-from-button.md
     - guides/custom-param-ui.md
     - guides/ecw-widget-gallery.md
     - guides/ecw-curve-editor.md
