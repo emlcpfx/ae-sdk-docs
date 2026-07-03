@@ -130,6 +130,7 @@ nav:
     - aegp/suite-versioning.md
     - aegp/stream-walking.md
     - aegp/choice-popup-params.md
+    - aegp/runtime-dropdown-popup.md
   - Suites & Callbacks:
     - suites/index.md
     - suites/suite-acquisition.md

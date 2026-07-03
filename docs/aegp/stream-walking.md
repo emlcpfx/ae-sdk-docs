@@ -86,9 +86,35 @@ asserts via the internal verification dialog. Treat the `5027:NNN` numbers as
 documentation of the exact contract you violated, then read the SDK header for
 the precondition you missed.
 
+## A related trap: two different index spaces
+
+`AEGP_GetNewEffectStreamByIndex` indexes the effect's **flat param list** (`0` =
+input layer, then one entry per `PF_ADD_*` param in declaration order, *including*
+group start / end markers). That is **not** the same as the child index you get
+from walking a group with `AEGP_DynamicStreamSuite`'s `AEGP_GetNewStreamRefByIndex`
+on the effect's stream group. The two agree only when the effect has no nested
+structure; once there are groups they diverge, and feeding a DynamicStream child
+index into `GetNewEffectStreamByIndex` runs off the end -> `5027:150`.
+
+So:
+
+- If you already hold an `AEGP_StreamRefH` from a DynamicStream walk, read or
+  write it **directly** (`AEGP_GetNewStreamValue` / `AEGP_SetStreamValue` on that
+  ref) -- do not convert it back to an index.
+- If you only know a param by name, resolve its real *flat* index from your own
+  param table (the mapping you built at `PARAMS_SETUP`) rather than reusing a
+  walk position from a different API.
+
+This bit a "set my own param by name" helper: it found the param via a
+DynamicStream match, returned that child index, then passed it to
+`GetNewEffectStreamByIndex` -- which asserted `5027:150` the moment a group sat
+before the target param.
+
 ## See also
 
 - [Choice / Popup Params Are 1-Based](choice-popup-params.md) -- the other
   cross-effect stream-walking gotcha: popup values come back 1-based.
+- [Runtime-Populated Dropdowns](runtime-dropdown-popup.md) -- writes a picked
+  index back via AEGP; a prime place to hit the two-index-spaces trap above.
 
 *Tags: `aegp`, `stream`, `effect-walker`, `verification`, `no-data`*

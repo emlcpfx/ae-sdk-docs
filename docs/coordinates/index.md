@@ -8,6 +8,7 @@ Coordinate spaces, transforms, and matrix math in AE plugins.
 - [AE Camera Matrix Conventions](ae-camera-matrix-conventions.md) — row-vector vs column-vector, the byte-reinterpretation = transpose identity, the inversion trap, AE Y-down → NDC Y-up, `flipZ`, and ortho non-orthonormality. **Read this before integrating an AE camera into Vulkan / WebGPU / Metal / CUDA.**
 - [AE Camera Pipeline](ae-camera-pipeline.md) — the AEGP fetch sequence (effect_ref → comp → camera layer), Zoom → FOV conversion, default-camera fallback, and a CPU `projectWorldToComp` mirror for Custom UI gizmos.
 - [HDRI / Lat-Long Flipped Vertically (AE Y-Down)](hdri-latlong-y-flip.md) — why an equirectangular HDRI renders upside down in an AE path tracer (use `v = acos(-d.y)/pi`, not `acos(d.y)`), CPU/GPU sampler parity, and keeping a procedural sky generator consistent.
+- [Projected Texture UVs Flip on 3D Geometry (AE Y-Down)](projected-uv-y-flip.md) — the projection sibling of the HDRI flip: planar / box / cylindrical / spherical UVs generated from AE-space geometry come in upside-down and mirrored; bake a both-axis flip (negate tile) for generated projections, leave From-File UVs alone.
 
 ## AE Coordinate Spaces
 
