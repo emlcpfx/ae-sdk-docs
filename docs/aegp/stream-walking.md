@@ -34,10 +34,13 @@ for (PF_ParamIndex pi = 1; pi < 1024; ++pi) {
 
 Two contract violations:
 
-1. **Out-of-range index.** The SDK header documents `param_index` as valid in
-   `[0 .. AEGP_GetEffectNumParamStreams - 1]`, where 0 is the effect's input
-   layer. Calling past that range does not return an error -- AE asserts via the
-   verification dialog.
+1. **Out-of-range index.** The loop bound must come from
+   `AEGP_GetEffectNumParamStreams`, never a guess. Calling out of range does not
+   return an error -- AE asserts via the verification dialog. Read the assert
+   text literally: it enforces `[1 .. num_streams-1]`. Index 0 is the effect's
+   input layer and trips `5027:150` the moment you feed it to
+   `GetNewEffectStreamByIndex`, so start param walks at **1** (as the fix loop
+   below does) and reach the input layer through the layer APIs, not this call.
 
 2. **NO_DATA streams.** Groups, group-ends, buttons, and arbitrary-data params
    are `AEGP_StreamType_NO_DATA`. Calling `AEGP_GetNewStreamValue` on them trips
@@ -108,7 +111,16 @@ So:
 This bit a "set my own param by name" helper: it found the param via a
 DynamicStream match, returned that child index, then passed it to
 `GetNewEffectStreamByIndex` -- which asserted `5027:150` the moment a group sat
-before the target param.
+before the target param. A variant of the same helper skipped the walk entirely
+and just hard-coded index `0` to grab "the group", which asserts on its own (see
+contract violation 1 above) even before the index-space mismatch matters.
+
+These wrong helpers tend to recur in clusters: one bad by-name resolver often
+backs several buttons on the same effect family -- a part picker, a material
+loader, a "read my sibling effect's source layer" scan. When you find one,
+grep every other call site that reuses a walk position (or a literal `0`) as a
+`GetNewEffectStreamByIndex` index and fix them together, or the next button
+reproduces the identical `5027:150`.
 
 ## See also
 
