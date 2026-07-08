@@ -168,6 +168,92 @@ world in the derive-from-luma case. The rule is general: if a host or engine
 contract expects a valid image, hand it a valid image -- never a null that
 silently degrades to a 1x1 placeholder.
 
+## Colour params: RGB gets Resolve's native eyedropper, RGBA does not
+
+Resolve attaches its built-in pick-from-viewer eyedropper (the 10-bit colour
+picker, Resolve 14+) **only to 3-component `kOfxParamTypeRGB` params**. An
+RGBA param renders as a bare swatch with no picker at all -- there is no
+property to opt in; the component count IS the switch.
+
+```cpp
+// Bare swatch in Resolve -- no way for the user to sample the viewer:
+OFX::RGBAParamDescriptor* c = desc.defineRGBAParam("key_color");
+
+// Swatch + native eyedropper (sample any viewer pixel into the param):
+OFX::RGBParamDescriptor* c = desc.defineRGBParam("key_color");
+c->setHint("click on pixel");   // the Qualifier/Baldavenger pattern
+```
+
+If your cross-host colour model carries alpha, fix alpha at 1.0 on the OFX
+side -- AE's `PF_ADD_COLOR` has no alpha either, so nothing is lost. Note the
+param TYPE is part of the saved-project contract: switching RGBA -> RGB resets
+stored values in existing projects.
+
+## Overlay interacts in Resolve: ownership, draw suite, and viewer mode
+
+Effect **overlay** interacts DO work in Resolve (Studio; Color and Fusion
+pages) -- but only after the user selects **"OFX Overlay"** in the viewer's
+bottom-left overlay dropdown, and only if you avoid three traps:
+
+- **Resolve's Support-library fork takes OWNERSHIP of the overlay descriptor.**
+  `ImageEffectDescriptor::setOverlayInteractDescriptor` does
+  `_overlayDescriptor.reset(desc)` and deletes it at descriptor teardown.
+  Pass a `new`-allocated descriptor (as the SDK GainPlugin does). Passing a
+  static/stack object makes the scanner `delete` a non-heap pointer -- heap
+  corruption inside the scan, "Failed to load <bundle>", and a poisoned cache
+  entry (see the scan-cache section below).
+- **Draw with `ofxDrawSuite`, not OpenGL.** Resolve does not provide a GL
+  context to `kOfxInteractActionDraw`; raw `glBegin/glEnd` overlays are
+  silently invisible. Use `DrawArgs.context` +
+  `OFX::Private::gDrawSuite->draw(...)` / `drawText(...)` (see the fork's
+  GainPlugin interact). Pen events are delivered regardless of how you draw.
+- **Per-parameter custom interacts are NOT supported.**
+  `kOfxParamPropInteractV1` is never invoked;
+  `kOfxParamHostPropSupportsCustomInteract` reports 0. Only the effect-level
+  overlay interact exists.
+
+## RoD and image fetches THROW outside render actions
+
+On Resolve (and Fusion), `clipGetRegionOfDefinition` and `clipGetImage` fail
+with `HostInadequate` when called outside a render action -- and the C++
+support lib turns that into an exception. Two places this bites:
+
+- **Interact callbacks** (`draw`, `penDown`...): converting pen coordinates via
+  `src->getRegionOfDefinition(args.time)` throws, which kills the draw AND
+  every pen event with no diagnostics. Fall back to
+  `effect->getProjectExtent()` / `getProjectSize()`, or cache frame geometry
+  during render.
+- **Button-driven analysis** (`changedParam`): fetch frames via the effect's
+  `kOfxImageEffectPropFrameRange` + `fetchImage` inside try/catch; never call
+  RoD there. An exception escaping `changedParam` is mapped to
+  `kOfxStatErrMissingHostFeature`, which Fusion treats as a broken tool.
+
+## The plugin scan cache: failed scans poison future scans
+
+Resolve caches scan results in
+`%APPDATA%\Blackmagic Design\DaVinci Resolve\Support\OFXPluginCacheV2.xml`
+(macOS: `~/Library/Application Support/...`). Rules learned the hard way:
+
+- A **successful** scan writes a `<bundle>` entry with real `mtime`/`size` and
+  a `<plugin>` child; it is re-scanned automatically when the binary's
+  mtime/size change. `status="0"` means OK.
+- A **failed** scan writes a stub (no `<plugin>` child; `status="2"`, zeros if
+  there was no prior good entry) and Resolve then **skips re-scanning even
+  after you fix the binary**. You MUST delete the bundle's `<bundle>` block
+  (or the whole file -- it regenerates) after fixing a failed scan.
+- The failure dialog ("Failed to load ... .ofx.bundle") carries **zero
+  diagnostics**, and a scan failure can be ANY exception or crash in
+  Load/Describe/DescribeInContext. Two tools that turn guessing into
+  evidence: a minimal standalone host that drives
+  load/describe/describeInContext against the binary with SEH around each
+  action (PluginPort ships one as `tools/ofx_scan_probe`), and breadcrumb
+  logging from the plugin's describe path to a file (Resolve won't show you
+  stdout/stderr).
+- **Deploys fail silently while the host runs** -- and on Windows,
+  `Resolve.exe` frequently LINGERS after its window closes, still holding the
+  .ofx memory-mapped, so "I closed Resolve" is not enough: check the process
+  list before copying, and verify the installed file's mtime/size after.
+
 ## A few more Resolve-specific traps
 
 - **GPU support is opt-in and unforgiving.** Advertising
@@ -178,9 +264,6 @@ silently degrades to a 1x1 placeholder.
 - **bytesPerRow alignment.** Resolve renders thumbnails at odd sizes (e.g.
   208x117); if you upload to a GPU API that requires 256-byte row alignment,
   pad each row before the texture write or you'll get validation errors.
-- **Force a rescan after install.** Resolve caches its OFX plugin list; delete
-  its plugin cache (or restart) after replacing a bundle, or you'll keep
-  testing the old binary.
 
 ## Checklist
 
@@ -191,6 +274,11 @@ silently degrades to a 1x1 placeholder.
 - [ ] OFX channel layout treated as RGBA; AE ARGB path not reused blindly
 - [ ] Absent optional inputs fall back to a real image (source), never null
 - [ ] GPU support advertised only after validating it in Resolve specifically
+- [ ] Colour params defined as RGB (not RGBA) so Resolve shows its eyedropper
+- [ ] Overlay descriptor heap-allocated (`new`) -- Resolve's fork owns it
+- [ ] Overlay drawing via ofxDrawSuite; no RoD/fetchImage in interacts
+- [ ] After a failed scan: evict the bundle's OFXPluginCacheV2.xml block
+- [ ] Deploy only with the host process gone (it lingers past window close)
 
 ## See also
 
@@ -199,4 +287,4 @@ silently degrades to a 1x1 placeholder.
 - [Verify GPU Channel Order Empirically](../gpu/pixel-layout-rgba.md)
 - [ARGB pixel order](../advanced/argb.md)
 
-*Tags: `ofx`, `openfx`, `resolve`, `nuke`, `rgba`, `argb`, `createinstance`, `clips`, `cross-host`*
+*Tags: `ofx`, `openfx`, `resolve`, `nuke`, `rgba`, `argb`, `createinstance`, `clips`, `cross-host`, `eyedropper`, `color-picker`, `overlay`, `interact`, `drawsuite`, `plugin-cache`, `scan`, `deploy`*
