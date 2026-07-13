@@ -2,3 +2,33 @@ site/
 _site/
 __pycache__/
 *.pyc
+
+# ---------------------------------------------------------------------------
+# Secrets. These live in the working tree and were previously protected by
+# nothing but luck - a single `git add -A` staged web/.gemini-key (a live GCP
+# API key) and only GitHub's push protection stopped it reaching a public repo.
+#
+# Add new credential files HERE, not to your memory.
+# ---------------------------------------------------------------------------
+.ftpconfig
+web/.deploy-key
+web/.gemini-key
+web/.htpasswd
+
+# Belt and braces: catch credential files by shape, so a new one that nobody
+# remembers to list is still ignored by default.
+*.pem
+*.key
+.env
+.env.*
+*.htpasswd
+*deploy-key*
+*.credentials
+*secret*.json
+*service-account*.json
+
+# ---------------------------------------------------------------------------
+# Build / dependency output
+# ---------------------------------------------------------------------------
+node_modules/
+package-lock.json
