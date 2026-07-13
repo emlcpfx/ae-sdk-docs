@@ -738,7 +738,40 @@ When implementing GPU effects that involve compositing and masking, the **alpha 
 
 ## After Effects Expects UNPREMULTIPLIED Output
 
-**Critical Discovery:** After Effects GPU worlds expect **UNPREMULTIPLIED** (straight alpha) data in the output buffer.
+!!! danger "RETRACTED 2026-07-13 — this section is WRONG"
+    Everything below claiming AE GPU worlds are unpremultiplied is **incorrect**,
+    and it cost real debugging time (a keyer shipped straight RGB out of CUDA for
+    months, producing a hot fringe on every soft edge that read as a keying
+    problem). **AE GPU worlds are PREMULTIPLIED, exactly like CPU worlds.**
+
+    Measured, not reasoned: a probe wrote raw values straight into a GPU output
+    world and the composite was read back, in an isolated comp over black with no
+    other layers or effects.
+
+    | band | wrote | premult predicts | straight predicts | CPU read | GPU read |
+    |------|-------|------------------|-------------------|----------|----------|
+    | A | `rgb=0.5, a=0.5`  | 0.50  | 0.25  | 0.50 | **0.50** |
+    | B | `rgb=0.25, a=0.5` | 0.25  | 0.125 | 0.25 | **0.25** |
+    | C | `rgb=0, a=0`      | 0     | 0     | 0    | 0 |
+
+    The GPU renders byte-identically to the premultiplied CPU world. Straight would
+    have come out half as bright.
+
+    Your kernels may still operate in straight space *internally* — just
+    **premultiply at the boundary**. See
+    [PreRender GPU Gating](../gpu/prerender-gpu-gating.md#gpu-worlds-are-premultiplied).
+
+    Two traps that made this hard to see, and that will fool the next person too:
+
+    - **Test in an isolated comp.** A grey solid sitting behind the layer makes the
+      straight and premultiplied models both look plausible. Include a fully
+      transparent band so the probe *measures* the background instead of assuming it.
+    - **AE's frame cache does not reliably invalidate when you switch render
+      engines.** Flipping to Mercury Software Only can hand you back the cached GPU
+      frame. Purge between switches, and make the CPU and GPU probes visually
+      distinct (e.g. horizontal vs vertical bands) so you cannot be fooled.
+
+**Critical Discovery (WRONG - see the retraction above):** After Effects GPU worlds expect **UNPREMULTIPLIED** (straight alpha) data in the output buffer.
 
 When you see:
 ```

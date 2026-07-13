@@ -465,7 +465,19 @@ AE supports several GPU frameworks:
     When rendering on the GPU, the input and output `PF_EffectWorld` structures still exist, but their `data` pointer is `NULL`. The actual pixel data lives in GPU memory. If you try to dereference `world->data` in GPU mode, you will crash. Always check whether you are in GPU mode before touching CPU pixel pointers.
 
 !!! warning "GPU Buffers Use Straight Alpha"
-    CPU buffers in AE are **premultiplied** (RGB channels are pre-multiplied by alpha). GPU buffers are **unpremultiplied** (straight alpha). If you are porting CPU code to GPU, you need to account for this difference, especially in blending and compositing operations.
+    **CORRECTED 2026-07-13 — this said the opposite, and it was wrong.** GPU world
+    buffers are **premultiplied**, exactly like CPU buffers. Measured with a probe
+    that wrote raw values straight into a GPU output world and read the composite
+    back: `rgb=0.5, alpha=0.5` rendered as **0.5** over black — byte-identical to
+    the premultiplied CPU world. Straight would have composited to `0.5 × 0.5 = 0.25`.
+    See [PreRender GPU Gating](../gpu/prerender-gpu-gating.md#gpu-worlds-are-premultiplied)
+    for the full method.
+
+    Your kernel chain may still work in straight space *internally* (that is often
+    convenient), but you must then **premultiply on the way out**. Shipping straight
+    RGB into a buffer AE reads as premultiplied makes every semi-transparent pixel
+    too bright — a hot fringe on precisely the soft edges, where it is easiest to
+    misread as a keying artifact rather than a maths bug.
 
 ### What About Vulkan and WebGPU?
 
