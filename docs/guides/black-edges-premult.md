@@ -87,3 +87,77 @@ alpha modification -- not just blur.
 > convert to premultiplied yourself, the SDK does **not** compensate -- your code
 > must maintain the invariant. Before reusing alpha-manipulation code from one
 > host in another, check whether the SDK was silently rescaling RGB.
+
+## Some formulas already OUTPUT premultiplied -- re-premultiplying them darkens edges
+
+The rule above ("re-premultiply after you touch RGB") has a dangerous exception.
+Several standard compositing formulas -- borrowed from Nuke and elsewhere -- are
+*defined* to produce a premultiplied result. Wrapping them in the usual
+unpremultiply / process / re-premultiply sandwich multiplies by alpha twice.
+
+The canonical case is IBK-style **screen subtraction** (despill by subtracting the
+clean plate):
+
+```
+out = fg + cleanPlate * (alpha - 1.0)
+```
+
+Model an edge pixel of a green-screen plate as a mix of the true foreground and
+the screen:
+
+```
+fg  = a*FG + (1-a)*screen
+out = fg - cp*(1-a)          (cp stands in for screen)
+    = a*FG                   <-- ALREADY premultiplied by a
+```
+
+That `a*FG` is the premultiplied answer. It is the *point* of the formula: the
+subtraction removes exactly the screen contribution that a partially transparent
+pixel picked up. So the correct store is:
+
+```cpp
+// out_* are premultiplied. Store them as-is.
+SetRGBA(pixel, out_r, out_g, out_b, alpha);
+```
+
+Do **not** do this:
+
+```cpp
+// WRONG: out_* were already premultiplied. This yields FG * a^2.
+SetRGBA(pixel, out_r * alpha, out_g * alpha, out_b * alpha, alpha);
+```
+
+### Why it is so hard to spot
+
+The extra factor of alpha is `1.0` at `alpha == 1` and `0.0` at `alpha == 0`, so
+**opaque interiors and fully transparent regions are both pixel-perfect**. The
+error is confined to `0 < alpha < 1` -- and it is worst where alpha is *lowest*.
+The result is a dark rim that hugs precisely the soft edge (hair, motion blur,
+defocus) while the rest of the frame looks flawless. It reads as a keying-quality
+problem, not a maths bug, so it survives every "fix" aimed at the matte.
+
+Implementations often make it even easier to miss by skipping the trivial cases:
+
+```cpp
+if (alpha <= 0.001f || alpha >= 0.999f) continue;   // only edges are touched
+```
+
+### How to check
+
+Print the *straight* colour (`premult / alpha`) of the semi-transparent pixels at
+each pipeline stage and watch for a stage where it collapses toward black. If a
+stage's straight colour drops by roughly a factor of `alpha`, you are
+premultiplying twice. Reasoning about which stage is responsible is unreliable --
+print the numbers.
+
+### Clamp range
+
+A premultiplied channel is bounded by its alpha, not by 1.0:
+
+```cpp
+out_r = std::max(0.0f, std::min(alpha, out_r));   // not min(1.0f, ...)
+```
+
+Clamping premultiplied values to `[0, 1]` lets a pixel exceed its own alpha,
+which is an invalid premultiplied colour (implied straight value > 1.0) and will
+read as a bright fringe once composited.
