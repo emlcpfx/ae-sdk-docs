@@ -22,6 +22,15 @@ If your plugin supports both CPU and GPU paths, the pixel swizzle matters:
 
 The enum name `PF_PixelFormat_GPU_BGRA128` is authoritative — the format is BGRA.
 
+!!! warning "Shipping the same kernel to OFX too? Don't hardcode that swizzle"
+    The `float pR = px.z, pG = px.y, pB = px.x` line above is correct **for AE**.
+    OFX hosts (Resolve, Nuke, Flame) deliver **RGBA**, so the same constant swaps
+    red and blue there. A cross-host kernel must branch on a host flag rather than
+    bake in either order — see
+    [Cross-Host Channel Order: AE is BGRA, OFX is RGBA](cross-host-channel-order-ae-vs-ofx.md),
+    which also shows how to make a hardcoded order fail your parity test at build
+    time instead of shipping.
+
 *Tags: `argb`, `buffer`, `cpu`, `gpu`, `pixel-format`, `rgba`, `smart-render`*
 
 ---

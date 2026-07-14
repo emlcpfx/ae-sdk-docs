@@ -145,6 +145,7 @@ nav:
     - gpu/gpu-render-model.md
     - gpu/gpu-cpu-parity.md
     - gpu/pixel-layout-rgba.md
+    - gpu/cross-host-channel-order-ae-vs-ofx.md
     - gpu/metal-device-library.md
   - Coordinates & Transforms:
     - coordinates/index.md

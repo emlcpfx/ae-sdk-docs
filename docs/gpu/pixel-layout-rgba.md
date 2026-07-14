@@ -73,6 +73,10 @@ out.x = pR; out.y = pG; out.z = pB; out.w = pA;
 
 ## See also
 
+- [Cross-Host Channel Order: AE is BGRA, OFX is RGBA](cross-host-channel-order-ae-vs-ofx.md)
+  -- if one kernel source ships to both AE and OFX, "lock the kernel to the proven
+  order" does not apply: there are *two* proven orders and you must branch on the
+  host. Read this before applying the fix above to a cross-host plugin.
 - [CPU/GPU Render Parity](cpu-gpu-parity.md) -- AE's BGRA float4 layout and the
   CPU ARGB layout side by side.
 - [Metal Compute Shaders](metal-compute.md) -- why Metal's `.r/.g/.b/.a`
