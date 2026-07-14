@@ -473,11 +473,18 @@ AE supports several GPU frameworks:
     See [PreRender GPU Gating](../gpu/prerender-gpu-gating.md#gpu-worlds-are-premultiplied)
     for the full method.
 
-    Your kernel chain may still work in straight space *internally* (that is often
-    convenient), but you must then **premultiply on the way out**. Shipping straight
-    RGB into a buffer AE reads as premultiplied makes every semi-transparent pixel
-    too bright — a hot fringe on precisely the soft edges, where it is easiest to
-    misread as a keying artifact rather than a maths bug.
+    **Do not read that as "premultiply at the end."** The world convention tells you
+    nothing about what your buffer already holds. A kernel that applies a matte by
+    scaling only alpha (leaving RGB alone) is *already* producing premultiplied
+    output when its input world was premultiplied; premultiplying again darkens
+    every soft edge.
+
+    Check it by measurement: **straight colour (`premult / alpha`) is invariant
+    across a correct premultiply.** Read the same pixel before and after — if the
+    straight colour drops by a factor of alpha, you have done it twice. Both
+    directions of this mistake only touch `0 < alpha < 1`, so they read as keying
+    artifacts (hot fringe, or a dark rim) rather than alpha bugs. See
+    [PreRender GPU Gating](../gpu/prerender-gpu-gating.md#premultiplied-worlds-does-not-mean-premultiply-at-the-end).
 
 ### What About Vulkan and WebGPU?
 

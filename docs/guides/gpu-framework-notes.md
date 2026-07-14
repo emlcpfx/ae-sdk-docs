@@ -757,9 +757,17 @@ When implementing GPU effects that involve compositing and masking, the **alpha 
     The GPU renders byte-identically to the premultiplied CPU world. Straight would
     have come out half as bright.
 
-    Your kernels may still operate in straight space *internally* — just
-    **premultiply at the boundary**. See
-    [PreRender GPU Gating](../gpu/prerender-gpu-gating.md#gpu-worlds-are-premultiplied).
+    **But "premultiplied worlds" does NOT mean "premultiply at the end."** That
+    inference is a trap: knowing the *world* convention says nothing about what
+    your buffer already holds. An "apply matte" kernel that scales only alpha and
+    leaves RGB alone is **already producing premultiplied output** when the input
+    world was premultiplied — premultiplying again darkens every soft edge.
+
+    Settle it by measurement, not argument: **straight colour (`premult / alpha`)
+    is invariant across a correct premultiply.** Read a pixel back before and
+    after. If the straight colour falls by a factor of alpha, you just did it
+    twice. See
+    [PreRender GPU Gating](../gpu/prerender-gpu-gating.md#premultiplied-worlds-does-not-mean-premultiply-at-the-end).
 
     Two traps that made this hard to see, and that will fool the next person too:
 

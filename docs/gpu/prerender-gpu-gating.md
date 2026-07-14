@@ -145,12 +145,71 @@ with no other layers and no other effects:
 The GPU renders byte-identically to the premultiplied CPU world. Straight would
 have been half as bright.
 
-Your kernel chain may still be straight *internally* — that is often the natural
-way to write it (unpremultiply once on input, work in straight space, composite
-freely). **Just premultiply on the way out.** Shipping straight RGB into a buffer
-AE reads as premultiplied makes every semi-transparent pixel too bright: a hot
-fringe on exactly the soft edges (hair, motion blur), which reads as a *keying*
-artifact rather than an alpha bug, and can survive for months.
+### "Premultiplied worlds" does NOT mean "premultiply at the end"
+
+!!! danger "This inference is a trap, and it cost a real dark edge"
+    An earlier revision of this page said: *"your chain may be straight internally
+    — just premultiply on the way out."* That is a **non-sequitur**, and acting on
+    it introduced a double-premultiply that darkened every soft edge in a keyer.
+
+    Knowing the *world* convention tells you nothing about what **your buffer
+    already holds**. You have to check that separately.
+
+The trap in full. A keyer's "apply the matte" kernel typically looks like this:
+
+```cpp
+// src is the AE input world -> PREMULTIPLIED
+float4 pixel = src[idx];
+pixel.w *= matte_alpha;   // only alpha is scaled; RGB is left alone
+dst[idx] = pixel;
+```
+
+It is tempting to read "RGB untouched" as "this buffer is straight now, so I owe a
+premultiply at the end." **It is not straight.** On an opaque plate (`src.a == 1`)
+the input's RGB *is* the plate colour, and carrying it across while setting
+`alpha = matte` produces output that is **already premultiplied** — it is exactly
+what AE's own `transfer_rect` (`PF_Xfer_COPY` + a mask world) does on the CPU:
+leave RGB, set alpha. Premultiplying again multiplies by alpha **twice**.
+
+### The invariant that settles it in one measurement
+
+> **Straight colour (`premult / alpha`) is invariant across a correct
+> premultiply.** Premultiply scales RGB by alpha and leaves alpha alone, so the
+> ratio cannot move.
+
+So read the same pixel back before and after the call:
+
+- straight colour **unchanged** → the buffer was straight; the premultiply was owed.
+- straight colour **fell by a factor of alpha** → the buffer was *already*
+  premultiplied and you have just done it twice.
+
+Real numbers from the keyer, at one edge pixel (`alpha = 0.848875`):
+
+```
+before premultiply : straight R = 0.100308   -> premult R = 0.085149
+after  premultiply : straight R = 0.085149   -> premult R = 0.072281
+CPU final output   : straight R = 0.100549   -> premult R = 0.085149
+```
+
+The straight colour dropped by exactly alpha, and the *pre*-premultiply value
+already matched the CPU's *final* output. Both facts say the same thing: the extra
+multiply was the bug. Reading pixels back off the device took ten minutes; arguing
+about it from the kernel source took a day.
+
+### And the failure looks like a keying artifact, not an alpha bug
+
+Both directions of this mistake hide in plain sight, because they only touch
+`0 < alpha < 1`:
+
+- **Straight RGB shipped into a premultiplied buffer** → semi-transparent pixels
+  too *bright*: a hot fringe on hair and motion blur.
+- **Double-premultiplied** → semi-transparent pixels too *dark*: a dark rim
+  hugging the silhouette.
+
+Opaque interiors and fully transparent regions are pixel-perfect in both cases, so
+it reads as "the key is bad," and people go tuning the matte instead of the alpha
+maths. Worse, the two errors **cancel**: a missing premultiply can mask a
+double-premultiply elsewhere and make a broken pipeline look correct.
 
 ### How to measure it yourself, without fooling yourself
 

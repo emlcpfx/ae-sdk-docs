@@ -142,13 +142,44 @@ Implementations often make it even easier to miss by skipping the trivial cases:
 if (alpha <= 0.001f || alpha >= 0.999f) continue;   // only edges are touched
 ```
 
-### How to check
+### How to check: the straight-colour invariant
 
-Print the *straight* colour (`premult / alpha`) of the semi-transparent pixels at
-each pipeline stage and watch for a stage where it collapses toward black. If a
-stage's straight colour drops by roughly a factor of `alpha`, you are
-premultiplying twice. Reasoning about which stage is responsible is unreliable --
-print the numbers.
+> **Straight colour (`premult / alpha`) is INVARIANT across a correct
+> premultiply.** Premultiply scales RGB by alpha and leaves alpha alone, so the
+> ratio cannot move. Any stage that changes it is doing something to the colour.
+
+This is the single most useful diagnostic in this whole family of bugs, because it
+turns "which stage is wrong?" into a measurement instead of an argument. Print the
+straight colour of semi-transparent pixels at every stage boundary:
+
+- straight colour **unchanged** across a premultiply -> correct.
+- straight colour **drops by a factor of `alpha`** -> you premultiplied **twice**.
+- straight colour **rises by a factor of `1/alpha`** -> you unpremultiplied twice,
+  or unpremultiplied something that was already straight.
+
+Two traps worth naming, because they cost days:
+
+**1. Do not compare the "darkest" pixels between stages -- compare the DELTA.**
+The darkest pixels in a frame are usually its black letterbox border, which is
+legitimately black and identical at every stage. It tells you nothing. The halo is
+not the darkest thing in the frame; it is the thing that *got* darker. Report the
+biggest *drop* per stage, and exclude the frame border.
+
+**2. Knowing the buffer convention does NOT tell you what the buffer holds.**
+"This host's worlds are premultiplied" does not imply "premultiply at the end."
+A kernel that applies a matte by scaling only alpha and leaving RGB alone is
+*already* emitting premultiplied output if its input was premultiplied -- that is
+exactly what AE's `transfer_rect` (`PF_Xfer_COPY` + mask) does. Premultiplying
+again is the double. Measure with the invariant above; do not infer.
+
+### The two errors cancel, which is why they survive
+
+A missing premultiply brightens semi-transparent pixels; a double premultiply
+darkens them. Put both in one pipeline and it can look *correct*. Fix only one and
+the other suddenly appears -- which reads as a regression you just introduced,
+when in fact you removed the concealer. If fixing an alpha bug makes a *new* edge
+artifact appear, suspect that you have just unmasked a second one rather than
+caused it.
 
 ### Clamp range
 
