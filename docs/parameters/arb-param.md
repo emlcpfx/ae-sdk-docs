@@ -2,6 +2,11 @@
 
 > 7 Q&As · source: AE plugin dev community Discord
 
+!!! warning "Give each ARB param a `disk_id` <= 32767"
+    `PF_ArbParamsExtra::id` is an `A_short`, so a larger `disk_id` truncates and
+    your arb callbacks never match — leaving the param's value NULL forever with
+    no error. See [Arb Param Value Is Always NULL](arb-param-null-value-traps.md).
+
 ### How can I continuously update an ECW (Effect Control Window) custom UI drawing while dragging a 2D point parameter?
 
 ECW custom UIs get idle calls on regular intervals only when the cursor is within their perimeter. However, if the point parameter is supervised, you can call PF_RefreshAllWindows during interactions, which will force a redraw. It's somewhat wasteful, but it works.

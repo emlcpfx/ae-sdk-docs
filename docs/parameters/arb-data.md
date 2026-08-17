@@ -2,6 +2,13 @@
 
 > 107 Q&As · source: AE plugin dev community Discord
 
+!!! warning "If your ARB param's value is always NULL"
+    Two silent traps cause this, both of which look like correct code: an ARB
+    `disk_id` above 32767 truncates in `PF_ArbParamsExtra::id` (an `A_short`) so
+    the callbacks never match, and assigning `u.arb_d.value` through `params[]`
+    is discarded by AE. See
+    [Arb Param Value Is Always NULL](arb-param-null-value-traps.md).
+
 ### How do you implement a text editor in the Effect Control Window of an AE plugin?
 
 Instead of trying to handle PF_Event_KEYDOWNs directly (which has limitations like missing Tab key and no param index), use a button that runs a script via AEGP_ExecuteScript(). The script string can display a text box dialog. Pass data to it by find+replacing in the script string before execution. Store the text in an arb data parameter. The script can return data back to AE.
