@@ -15,6 +15,7 @@ Performance optimization, error handling, compatibility, and expert-level techni
 - **Don't allocate memory in the render loop** — pre-allocate in sequence setup
 - **Check every `PF_Err`** — use the `ERR()` macro pattern from the SDK examples
 - **Flatten/unflatten sequence data** — if you skip this, your plugin's state won't survive save/load
+- **Widgets you draw in the ECW never fire `USER_CHANGED_PARAM`** — they arrive as coordinate hit-tests in `PF_Event_DO_CLICK`, so a "fix" to the param handler can silently miss the button the user actually clicks. See [ecw-drawn-widgets-vs-param-handlers.md](ecw-drawn-widgets-vs-param-handlers.md)
 
 ## Compatibility
 
