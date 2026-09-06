@@ -6,7 +6,9 @@
 
 No, the crosshairs are the visual representation of point parameters and cannot be disabled. As a workaround, you could use a different parameter type like an int or float param pair for x and y values instead of a point parameter.
 
-*Tags: `comp-window`, `crosshair`, `point-parameters`, `ui`, `workaround`*
+**3D points draw one too.** Verified in AE 26.0 (2026-09-06): a `PF_ADD_POINT_3D` param shows the same little crosshair in the comp viewer as a `PF_ADD_POINT` when the effect is selected, so switching to a 3D point is not a way to hide the pin. If an effect needs many keyframeable X/Y values without viewport clutter (SuperClone has 100 per-stroke source offsets), the working pattern is a float-slider pair per value plus a handle you draw yourself in the comp DRAW event (DrawBot) for the selected items only - sliders draw nothing, and the custom handle can be hit-tested in DO_CLICK / dragged in DRAG with `continue_refcon`, writing the sliders via AEGP on mouse-up.
+
+*Tags: `comp-window`, `crosshair`, `point-parameters`, `3d-point`, `ui`, `workaround`*
 
 ---
 
