@@ -1,6 +1,6 @@
 # Extendscript
 
-> 11 Q&As · source: AE plugin dev community Discord
+> 12 Q&As · source: AE plugin dev community Discord
 
 ### How do you get the AE/Premiere version number programmatically?
 
@@ -96,5 +96,13 @@ comp.layers.add(otherCompItem);
 If a script (or a script's error dialog) is already open in that AE, `-r` queues behind a modal: "Attempt was made to run a second script while another script was already running. Second script was not run. Try launching AE with the -ro or -so flag". The main window is disabled, so nothing else runs either, while the process still reports "Responding". Use `-ro` (run, overriding the running script) for automation. To find a hidden modal, enumerate top-level windows of class `#32770` (its Edit child holds the text). A script that throws leaves "Unable to execute script at line N" open and blocks the next one: wrap each step in try/catch and write a log line before it. Seen in AE 2025 (25.3.2), 2026-11-05.
 
 *Tags: `automation`, `command-line`, `extendscript`, `modal-dialog`*
+
+---
+
+### Why does `comp.saveFrameToPng` from a fresh AE 2025 project come out nearly black?
+
+New projects in AE 2025 can default to 32 bpc with OCIO colour management (ACES 1.2). The PNG then holds the linear working-space values, not a display-referred image: a frame whose source averaged 147 saved at about 14, even with every effect off. For a render check, set `app.project.colorManagementSystem = 0` (Adobe) and `app.project.bitsPerChannel = 16` first, then compare an effect-off frame with the source before judging an effect (it matched within 1.9 levels here). Seen in AE 2025 (25.3.2), 2026-11-05.
+
+*Tags: `color-management`, `extendscript`, `ocio`, `render`, `saveframetopng`*
 
 ---
