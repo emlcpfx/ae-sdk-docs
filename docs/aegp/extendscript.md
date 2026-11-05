@@ -1,6 +1,6 @@
 # Extendscript
 
-> 10 Q&As · source: AE plugin dev community Discord
+> 11 Q&As · source: AE plugin dev community Discord
 
 ### How do you get the AE/Premiere version number programmatically?
 
@@ -88,5 +88,13 @@ comp.layers.add(otherCompItem);
 ```
 
 *Tags: `extendscript`, `layer-checkout`, `scripting`*
+
+---
+
+### Why does `AfterFX.exe -r script.jsx` against a running AE do nothing?
+
+If a script (or a script's error dialog) is already open in that AE, `-r` queues behind a modal: "Attempt was made to run a second script while another script was already running. Second script was not run. Try launching AE with the -ro or -so flag". The main window is disabled, so nothing else runs either, while the process still reports "Responding". Use `-ro` (run, overriding the running script) for automation. To find a hidden modal, enumerate top-level windows of class `#32770` (its Edit child holds the text). A script that throws leaves "Unable to execute script at line N" open and blocks the next one: wrap each step in try/catch and write a log line before it. Seen in AE 2025 (25.3.2), 2026-11-05.
+
+*Tags: `automation`, `command-line`, `extendscript`, `modal-dialog`*
 
 ---
